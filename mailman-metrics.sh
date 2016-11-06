@@ -24,8 +24,7 @@ baseDir=https://lists.osgeo.org/pipermail # Base directory of email archive
 # Output files
 listPostsOut="listposts.csv" # outfile counting number of posts per month for each list
 emailsPerPersonOut="emailsPerPerson.csv" # outfile counting number of emails per person
-emailsPerPersonPerYearOut="emailsPerPerson.csv" # outfile counting number of emails per person
-listsOut="listsOut.csv" # list of email lists being trawled
+emailsPerPersonPerYearOut="emailsPerPersonPerYear.csv" # outfile counting number of emails per person
 
 declare -A posters # hash array, number of email posts per person
 declare -A postersYear # hash array, number of email posts per person per year
@@ -33,9 +32,8 @@ declare -A archive # hash array, number of posts per list per month
 
 # Write header line for output files
 echo "Year-Month-List, Num Posts" > ${listPostsOut}
-echo "Emailer, Total Emails" > $emailsPerPersonOut
-echo "Year-Emailer, EmailsPerYear" > $emailsPerPersonPerYearOut
-echo "List" > ${listsOut}
+echo "Emailer, Total Emails" > ${emailsPerPersonOut}
+echo "Year-Emailer, EmailsPerYear" > ${emailsPerPersonPerYearOut}
 
 # Get a list of OSGeo email lists
 for list in \
@@ -53,10 +51,7 @@ do
     echo dir="${dir}"
     year=`echo "${dir}" | sed -e's#-.*$##'`
     month=`echo "${dir}" | sed -e's#^.*-##' | sed -e's#/.*$##'`
-    echo "${list}" >> $listsOut
-
-    # search month page and count number of posts
-    #wget -O - ${baseDir}/${list}/${dir} | grep "<LI><A" | wc -l >> $listPostsOut
+    echo "${list}" >> ${listsOut}
 
     # Extract list of people sending emails this month
     IFS=$'\n'
@@ -71,19 +66,19 @@ do
     # print out number of posts per list, per month
     for name in "${!archive[@]}"
     do
-      echo $name,${archive[$name]} >> $listPostsOut
+      echo "\"$name\",\"${archive[$name]}\"" >> ${listPostsOut}
     done
 
     # print out number of posts per poster
     for name in "${!postersYear[@]}"
     do
-      echo $name,${postersYear[$name]} >> $emailsPerPersonPerYearOut
+      echo "\"$name\",\"${postersYear[$name]}\"" >> ${emailsPerPersonPerYearOut}
     done
 
     # print out number of posts per poster, per year
     for name in "${!posters[@]}"
     do
-      echo $name,${posters[$name]} >> $emailsPerPersonOut
+      echo "\"$name\",\"${posters[$name]}\"" >> ${emailsPerPersonOut}
     done
   done
 done
