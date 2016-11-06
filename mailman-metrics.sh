@@ -35,12 +35,16 @@ echo "Year-Month-List, Num Posts" > ${listPostsOut}
 echo "Emailer, Total Emails" > ${emailsPerPersonOut}
 echo "Year-Emailer, EmailsPerYear" > ${emailsPerPersonPerYearOut}
 
+# Trim to just get metrics for the "discuss" email list
+for list in "discuss" 
 # Get a list of OSGeo email lists
-for list in \
-  `wget -O - $listOfLists | grep "<a href=\"listinfo" \
-  | sed -e's#^.*listinfo/##' \
-  | sed -e's#".*$##'`
+#for list in \
+#  `wget -O - $listOfLists | grep "<a href=\"listinfo" \
+#  | sed -e's#^.*listinfo/##' \
+#  | sed -e's#".*$##'`
 do
+
+  echo "***** list=$list *********************************"
 
   # Extract URL of the month pages
   for dir in \
@@ -62,23 +66,23 @@ do
       posters["$name"]=$((posters["$name"]+1))
       archive["$year-$month-$list"]=$((archive["$year-$month-$list"]+1))
     done
+  done
 
-    # print out number of posts per list, per month
-    for name in "${!archive[@]}"
-    do
-      echo "\"$name\",\"${archive[$name]}\"" >> ${listPostsOut}
-    done
+  # print out number of posts per list, per month
+  for name in "${!archive[@]}"
+  do
+    echo "\"$name\",\"${archive[$name]}\"" >> ${listPostsOut}
+  done
 
-    # print out number of posts per poster
-    for name in "${!postersYear[@]}"
-    do
-      echo "\"$name\",\"${postersYear[$name]}\"" >> ${emailsPerPersonPerYearOut}
-    done
+  # print out number of posts per poster
+  for name in "${!postersYear[@]}"
+  do
+    echo "\"$name\",\"${postersYear[$name]}\"" >> ${emailsPerPersonPerYearOut}
+  done
 
-    # print out number of posts per poster, per year
-    for name in "${!posters[@]}"
-    do
-      echo "\"$name\",\"${posters[$name]}\"" >> ${emailsPerPersonOut}
-    done
+  # print out number of posts per poster, per year
+  for name in "${!posters[@]}"
+  do
+    echo "\"$name\",\"${posters[$name]}\"" >> ${emailsPerPersonOut}
   done
 done
