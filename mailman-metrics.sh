@@ -30,22 +30,18 @@ declare -A posters # hash array, number of email posts per person
 declare -A postersYear # hash array, number of email posts per person per year
 declare -A archive # hash array, number of posts per list per month
 
-# Write header line for output files
-echo "Year-Month-List, Num Posts" > ${listPostsOut}
-echo "Emailer, Total Emails" > ${emailsPerPersonOut}
-echo "Year-Emailer, EmailsPerYear" > ${emailsPerPersonPerYearOut}
+# Write header
+echo "\"Year-Month-List\",\"Num Posts\"" > ${listPostsOut}
 
-# Trim to just get metrics for the "discuss" email list
-for list in "discuss" 
+# Debugging option: Trim to just get metrics for the "discuss" email list
+# for list in "discuss" 
+
 # Get a list of OSGeo email lists
-#for list in \
-#  `wget -O - $listOfLists | grep "<a href=\"listinfo" \
-#  | sed -e's#^.*listinfo/##' \
-#  | sed -e's#".*$##'`
+for list in \
+  `wget -O - $listOfLists | grep "<a href=\"listinfo" \
+  | sed -e's#^.*listinfo/##' \
+  | sed -e's#".*$##'`
 do
-
-  echo "***** list=$list *********************************"
-
   # Extract URL of the month pages
   for dir in \
     `wget -O - ${baseDir}/${list}/ | grep "date.html" \
@@ -55,7 +51,6 @@ do
     echo dir="${dir}"
     year=`echo "${dir}" | sed -e's#-.*$##'`
     month=`echo "${dir}" | sed -e's#^.*-##' | sed -e's#/.*$##'`
-    echo "${list}" >> ${listsOut}
 
     # Extract list of people sending emails this month
     IFS=$'\n'
@@ -66,23 +61,29 @@ do
       posters["$name"]=$((posters["$name"]+1))
       archive["$year-$month-$list"]=$((archive["$year-$month-$list"]+1))
     done
-  done
+ 
+    echo \"$year-$month-$list\",\"${archive["$year-$month-$list"]}\" >> ${listPostsOut}
 
-  # print out number of posts per list, per month
-  for name in "${!archive[@]}"
-  do
-    echo "\"$name\",\"${archive[$name]}\"" >> ${listPostsOut}
   done
+done
 
-  # print out number of posts per poster
-  for name in "${!postersYear[@]}"
-  do
-    echo "\"$name\",\"${postersYear[$name]}\"" >> ${emailsPerPersonPerYearOut}
-  done
+# print out number of posts per list, per month
+# This is not required, as it is being printed out as it is being processed
+#for name in "${!archive[@]}"
+#do
+#  echo "\"$name\",\"${archive[$name]}\"" >> ${listPostsOut}
+#done
 
-  # print out number of posts per poster, per year
-  for name in "${!posters[@]}"
-  do
-    echo "\"$name\",\"${posters[$name]}\"" >> ${emailsPerPersonOut}
-  done
+# print out number of posts per poster
+echo "\"Year-Emailer\",\"EmailsPerYear\"" > ${emailsPerPersonPerYearOut}
+for name in "${!postersYear[@]}"
+do
+  echo "\"$name\",\"${postersYear[$name]}\"" >> ${emailsPerPersonPerYearOut}
+done
+
+# print out number of posts per poster, per year
+echo "\"Emailer\",\"Total Emails\"" > ${emailsPerPersonOut}
+for name in "${!posters[@]}"
+do
+  echo "\"$name\",\"${posters[$name]}\"" >> ${emailsPerPersonOut}
 done
